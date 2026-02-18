@@ -146,3 +146,11 @@ select * from Person where (City = 'Gotham city' or City = 'New York')
 --kõik, kes elavad Gothamis ja New Yorkis ning peavad olema 
 --vanemad kui 29
 select * from Person where (City = 'Gotham city' or City = 'New York' and Age > 29)
+
+--kuvad tähestikulises järjekorras inimesi ja võtab aluseks
+--name veeru 
+select * from Person
+select * from Person order by Name
+
+--võtab kolm esimest rida peron tabelist
+select TOP 3 * FROM Person;
