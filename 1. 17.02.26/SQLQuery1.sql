@@ -154,3 +154,28 @@ select * from Person order by Name
 
 --võtab kolm esimest rida peron tabelist
 select TOP 3 * FROM Person;
+--3 tund 
+--25.02.2026
+--kolm esimest, aga tabeli järjestus on Age ja siis Name
+
+select TOP 50 PERCENT * from Person
+
+--järjesta vanuse järgi isikud
+
+Select * from Person order by Age DESC 
+
+--muudab Age muutja int-ks ja näitab vanulesises järjestuses
+--casti abil saab andmetüüpi muuta
+select * from Person order by cast(Age as int) desc
+
+--kõikide isikute koondvanus
+
+select SUM(cast(Age as int)) from Person
+
+--kõige noorem isik tuleb üles leida
+
+select TOP 1 * from Person order by cast(age as int) asc -- minu tehtud
+select min(cast(Age as int)) from Person -- õpetaja tehtud
+
+--muudame Age muutja int peale
+set Age value to int
