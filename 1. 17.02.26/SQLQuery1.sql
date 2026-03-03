@@ -275,3 +275,75 @@ from Employees
 left join Department
 on Employees.DepartmentId = Department.Id
 group by Location
+
+select * from Employees
+select sum(CAST(Salary as int)) from Employees --arvutab kõikide palgad kokku
+
+-- lisame veeru City pikkus on 30
+
+ALTER table Employees
+add City nvarchar(30)
+
+select City, Gender, sum(cast(Salary as int)) as TotalSalary
+from Employees
+group by City, Gender
+
+--peeaegu sama päring, aga linnad on tähestikulises järjestuses.
+
+select City, Gender, sum(cast(Salary as int)) as TotalSalary
+from Employees
+group by City, Gender
+ORDER by City ASC
+
+select count(*)
+from Employees
+
+-- mitu töötajat on soo ja linna kaupatöötamas
+
+SELECT City, Gender, SUM(CAST(Salary AS int)) AS TotalSalary,
+COUNT(Id) as [Total EMployee(s)]
+FROM Employees
+GROUP BY City, Gender
+
+--kuvab kas naised või mehed linnade kaupa
+--kasutage where
+
+SELECT City, Gender, SUM(CAST(Salary AS int)) AS TotalSalary,
+COUNT(Id) as [Total EMployee(s)]
+FROM Employees
+WHERE Gender = 'Male'
+GROUP BY City, Gender
+
+--sama tulemuse nagu eelmine kord, aga kasutage: having
+
+SELECT City, Gender, SUM(CAST(Salary AS int)) AS TotalSalary,
+COUNT(Id) as [Total EMployee(s)]
+FROM Employees
+GROUP BY City, Gender
+having gender  = 'male';
+
+-- kõik kes teenivad rohkem, kui 4000
+
+SELECT City, Gender, SUM(CAST(Salary AS int)) AS TotalSalary,
+COUNT(Id) as [Total EMployee(s)]
+FROM Employees
+WHERE Salary > 4000
+GROUP BY City, Gender
+
+-- kõik, kes teenivad rohkem, kui 4000
+select * from Employees where sum(cast(Salary as int)) > 4000
+--teeme variandi, kus saame tulemuse
+select Gender, City, sum(CAST(salary as int)) as TotalSalary,
+COUNT (Id) as [Total Employee(s)]
+from Employees
+group by Gender, City 
+having sum(cast(Salary as int)) > 4000
+
+--loome tabeli, milles hakatakse automaatselt nummerdama Id-d
+create table Test1
+(
+Id int identity(1,1),
+Value nvarchar(20)
+)
+insert into Test1 values('X')
+select * from Test1
