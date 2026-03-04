@@ -359,29 +359,113 @@ drop column City
 select Name, Gender, Salary DepartmentName
 from Employees
 inner join Department
-on Employees.DepartmentId = DepartmentId
+on Employees.DepartmentId = Department.Id
 
 --left join
 select Name, Gender, Salary DepartmentName
 from Employees	
 left join Department -- vıib kasutada ka LEFT OUTER JOIN-i 
-on Employees.DepartmentId = DepartmentId
+on Employees.DepartmentId = Department.Id
 --uurige, mis on left join
 --n‰itab andmeid, kus vasakpoolsest tabelist isegi, siis kui  seal puudub
 --mınes reas v‰‰rtus
 
 --right join 
-select Name, Gender, Salary DepartmentName
+select Name, Gender, Salary, DepartmentName
 from Employees
 right join Department -- vıib kasutada ka RIGHT OUTER JOIN-i
-on Employees.DepartmentId = DepartmentId
+on Employees.DepartmentId = Department.Id
 --right join n‰itab paremas (Department) tabelis olevaid v‰‰rtuseid, 
 --mis ei ¸hti vasaku (Employees) tabeliga
 
 --outer join 
-select Name, Gender, Salary DepartmentName
+select Name, Gender, Salary, DepartmentName
 from Employees
 full outer join Department 
-on Employees.DepartmentId = DepartmentId
+on Employees.DepartmentId = Department.Id
+--mılema tabeli read kuvab
 
+--teha cross join
+select Name, Gender, Salary, DepartmentName
+From Employees
+cross join Department
+--korrutab kıik omavahel l‰bi
+
+--teha left join, kus Employees tabelist DepartmentId on null
+select Name, Gender, Salary, DepartmentName
+from Employees	
+left join Department 
+on Employees.DepartmentId = NULL
+
+--teine variant 
+select Name, Gender, Salary, DepartmentName
+from Employees	
+left join Department 
+on Department.Id is NULL
+--n‰itab ainult neid, kellel on vasakus tabelis (Employees)
+-- DepartmenId null
+
+select Name, Gender, Salary, DepartmentName
+from Employees	
+Right join Department 
+on Employees.DepartmentId = Department.Id
+Where Employees.DepartmentId is NULL
+--n‰itab ainult paremas tabelis olevat rida,
+--mis ei kattu Employees-ga.
+
+--full join 
+--mılema tabeli mitte-kattuvate v‰‰rtustega  read kuvab v‰lja
+select Name, Gender, Salary, DepartmentName
+from Employees	
+full join Department 
+on Employees.DepartmentId = Department.Id
+Where Employees.DepartmentId is NULL
+
+select Name, Gender, Salary, DepartmentName
+from Employees	
+full join Department 
+on Employees.DepartmentId = Department.Id
+where Employees.DepartmentId is null
+or Department.Id is null
+
+--teete AdventureWorksLT2019 andmebaasile join p‰ringuid:
+--inner join, left join, cross join ja full join
+--tabeleid sellesse andmebaasi juurde ei tohi teha
+
+--INNER JOIN
+SELECT a.AddressID, City, PostalCode, AddressLine1
+FROM SalesLT.Address AS a
+INNER JOIN SalesLT.CustomerAddress AS ca
+    ON a.AddressID = ca.AddressID;
+
+	--LEFT JOIN
+	select a.AddressID, City, PostalCode, AddressLine1
+	FROM SalesLT.Address AS a
+	left join SalesLT.CustomerAddress AS ca
+	ON a.AddressID = ca.AddressID
+
+	--CROSS JOIN
+	select a.AddressID, City, PostalCode, AddressLine1
+	FROM SalesLT.Address AS a
+	cross join SalesLT.CustomerAddress AS ca
+	
+	--FULL JOIN
+	select a.AddressID, City, PostalCode, AddressLine1
+	FROM SalesLT.Address AS a
+	FULL join SalesLT.CustomerAddress AS ca
+	ON a.AddressID = ca.AddressID
+	
+
+	--mınikord peab muutja ette kirjutama tabeli nimetuse nagu on Product.Name
+	--et editor saaks aru, et kmma tabeli muutjat soovitakse kasutada ja ei tekiks
+	--segadust
+	select Product.Name, ProductNumber, ListPrice, 
+	ProductModel.Name as [Product Model Name]
+	--mınikord peab ka tabeli ette kirjutama t‰psustama info
+	--nagu on SalesLT.Product
+	from SalesLT.Product
+	inner join SalesLT.ProductModel
+	--antud juhul Producti tabelis ProductModelId vıırvıti, 
+	--mis ProductModeli tabelis on primaarvıti
+	on Product.ProductModelID = ProductModel.ProductModelID
 
