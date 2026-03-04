@@ -347,3 +347,41 @@ Value nvarchar(20)
 )
 insert into Test1 values('X')
 select * from Test1
+--kustutame nimega City Employee tabelist
+alter table Employees
+drop column City
+
+--inner join 
+-- kuvab neid, kellel on Department Name all olemas v‰‰rtus
+--mitte kattuvad read eemaldatakse tulemusest
+-- ja sellep‰rast ei n‰idata Jamesi ja Russelit tabelis
+--kuna neil on DepartmentId NULL
+select Name, Gender, Salary DepartmentName
+from Employees
+inner join Department
+on Employees.DepartmentId = DepartmentId
+
+--left join
+select Name, Gender, Salary DepartmentName
+from Employees	
+left join Department -- vıib kasutada ka LEFT OUTER JOIN-i 
+on Employees.DepartmentId = DepartmentId
+--uurige, mis on left join
+--n‰itab andmeid, kus vasakpoolsest tabelist isegi, siis kui  seal puudub
+--mınes reas v‰‰rtus
+
+--right join 
+select Name, Gender, Salary DepartmentName
+from Employees
+right join Department -- vıib kasutada ka RIGHT OUTER JOIN-i
+on Employees.DepartmentId = DepartmentId
+--right join n‰itab paremas (Department) tabelis olevaid v‰‰rtuseid, 
+--mis ei ¸hti vasaku (Employees) tabeliga
+
+--outer join 
+select Name, Gender, Salary DepartmentName
+from Employees
+full outer join Department 
+on Employees.DepartmentId = DepartmentId
+
+
