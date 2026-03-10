@@ -1,8 +1,6 @@
 create database SpordiklubiSüsteem
 use SpordiklubiSüsteem
 
-DROP DATABASE SpordiklubkiSüsteem
-
 -- 1. punkt
 create table Liikmed
 (
