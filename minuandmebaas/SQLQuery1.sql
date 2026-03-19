@@ -501,14 +501,14 @@ INNER JOIN SalesLT.CustomerAddress AS ca
 
 	--lisame tabelisse uued veerud
 	Alter table Employees
-	ADD MiddleName nvarchar (30),
+	ADD MiddleName nvarchar (30)
 	Alter table Employees
 	ADD LastName nvarchar(30)
 
 	select * from Employees 
 	sp_rename 'Employees.Name', 'FristName' 
 
-	sp_rename 'Employees.FristName', 'FirstName'
+	sp_rename 'Employees.Name', 'FirstName'
 
 	select * from Employees
 	update Employees set MiddleName = '007' where Id = 9
@@ -723,3 +723,69 @@ else
 		--output tagastab muudetud read kohe p‰ringu tulemusena
 		--see on salvestatud protseduuris ja ¸he v‰‰rtuse tagastamine
 		--out ei anna mitte midagi, kui seda ei m‰‰ra execute k‰sus
+
+		--rida 668 
+		--tund 8
+		--19.08.2026
+
+		sp_help spGetNameById
+
+		create proc spGetNameById2
+		@Id int
+		--kui on begin, siis on ka end kuskil olemas
+		as begin 
+			return (select FirstName from Employees where Id = @Id)
+		end
+
+		--kutsusime v‰lja int-i aga Tom on nvarchar
+		declare @EmployeeName nvarchar(50)
+		execute @EmployeeName = spGetNameById2 1
+		print 'Name of the employee = ' + @EmployeeName
+
+	    --sisseehitatud string funktsioonid
+		--see konverteerib ASCII t‰he v‰‰rtuse numbriks
+		select ASCII('A')
+
+		select char(65)
+
+		--prindime kogu t‰hestiku v‰lja
+		declare @Start int 
+		set @Start = 97
+		--kasutate while, et n‰idata kogu t‰hestik ette
+		while (@Start <= 122)
+		begin 
+		select char(@Start)
+		set @Start = @Start + 1
+		end
+
+
+		--eemaldame t¸hjad kohad sulgudes
+		select LTRIM('                  Hello')
+		select ('                  Hello')
+
+
+		--t¸hikute eemaldamine veerust, mis on tabelis
+		select FirstName, MiddleName, LastName from Employees
+		--eemaldage t¸hikud veerust ‰ra
+		select ltrim(FirstName) as Name, MiddleName, LastName from Employees
+		
+		--paremalt poolt t¸hjad stringid lıikab ‰ra 
+		select rtrim('   Hello     ')
+
+		--keerab kooloni sees olevad andmed vastupidiseks
+		--vastavalt lower-ga ja upper-ga saan muuta m‰rkide suurust
+		--reverse funktsioon pˆˆrab kıik ¸mber
+		select Reverse(upper(ltrim(FirstName))) as FirstName, MiddleName, lower(LastName),
+		rtrim(ltrim(FirstName)) + ' ' + MiddleName + ' ' + LastName as FullName
+		from Employees 
+
+		--left, right, substring
+		--vasakult poolt neli esimest t‰hte 
+		select left('ABCDEF', 4)
+		--paremalt poolt kolm t‰hte
+		select right('ABCDEF', 3)
+
+		--kuvab @-t‰hem‰rgi asetust e mitmes on @-m‰rk
+		select CHARINDEX('@', 'sara@aaa.com')
+
+
