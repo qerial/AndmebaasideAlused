@@ -906,5 +906,18 @@ select MONTH('01/24/2026') --annab stringis oleva kuu ja järjestus peab olema õi
 select YEAR(GETDATE())-- annab jooksva aasta nr
 select YEAR('01/24/2026') -- annab stringis oleva aasta ja järjestus peab olema õige
 select datename(day, '2026-03-19 12:43:22.260') --annab stringis oleva päeva nr
-select datename(weekday, '2026-03-19 12:43:22.260') --annab stringis oleva nädala nr
-select datename(month, '2026-03-19 12:43:22.260') --annab stringis oleva kuu nr
+select datename(weekday, '2026-03-19 12:43:22.260') --annab stringis oleva nädala sõnana
+select datename(month, '2026-03-19 12:43:22.260') --annab stringis oleva kuu sõnana
+
+create table EmployeesWithDates
+(
+Id nvarchar(2),
+Name nvarchar(20),
+DateOfBirth datetime
+)
+select * from EmployeesWithDates
+INSERT INTO EmployeesWithDates(Id, Name, DateOfBirth)
+values ('1', 'Sam', '1980-12-30 00:00:00:000'),
+('2', 'Pam', '1982-09-01 12:02:36:260'),
+('3', 'John', '1985-08-22 12:03:30:370'),
+('4', 'Sara', '1979-11-29 12:59:30:670')
