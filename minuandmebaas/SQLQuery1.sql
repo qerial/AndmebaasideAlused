@@ -788,4 +788,123 @@ else
 		--kuvab @-tähemärgi asetust e mitmes on @-märk
 		select CHARINDEX('@', 'sara@aaa.com')
 
+		--esimene nr peale komakohta näitab, et mitmendast alustab ja 
+		--siis mitu nr peale seda kuvada
+		select SUBSTRING('pam@bbb.com',5,2)
 
+		-- @ - märgist kuvab kolm tähemärki. Viimase nr saab määrata pikkust
+		select SUBSTRING('pam@bbb.com', charindex('@', 'pam@bbb.com')+ 1, 3)
+		-- peale @-märki hakkab kuvama tulemust, nr saab kaugust seadistada
+		select SUBSTRING('pam@bbb.com', charindex('@', 'pam@bbb.com') + 2,
+		len('pam@bbb.com') - charindex('@', 'pam@bbb.com'))
+
+		alter table Employees
+		add Email nvarchar(20)
+
+		select * from Employees
+
+
+		'Tom@aaa.com'
+		'Pam@bbb.com'
+		'John@aaa.com'
+		'Sam@bbb.com'
+		'Todd@bbb.com'
+		'Ben@ccc.com'
+		'Sara@ccc.com'
+		'Valarie@aaa.com'
+		'James@bbb.com'
+		'Russel@bbb.com'
+
+		update Employees
+		set Email = Case Id
+		when 1 then 		'Tom@aaa.com'
+		when 2 then 		'Pam@bbb.com'
+when 3 then 		'John@aaa.com'
+when 4 then		'Sam@bbb.com'
+when 5 then 		'Todd@bbb.com'
+when 6 then		'Ben@ccc.com'
+when 7 then 		'Sara@ccc.com'
+when 8 then 		'James@bbb.com'
+when 9 then 		'Russel@bbb.com'
+end
+select * from Employees
+--soovime teada saada domeeninimesid emailides
+select SUBSTRING (Email, charindex('@', Email) + 1,
+len (Email) - charindex('@', Email)) as EmailDomain
+from Employees
+
+--alates  teistes tähest emailis kuni @ märgini on tärnid 
+select FirstName, LastName,
+substring(Email, 1, 2) + replicate('*', 5) +
+substring(Email,charindex('@', Email), len(Email) - charindex('@', Email)+1) as Email
+from Employees
+
+--kolm korda näitab stringis olevad väärtust
+select replicate('asd', 3)
+
+--tühku sisestamine
+select space(5)
+
+--tühiku sisestamine Firstname ja Lastname vahele
+select FirstName + Space(25) + LastName AS FullName
+FROM Employees
+
+-- PATINDEX
+-- sama, mis charindex, aga dünaamilisem ja saab kasutada wildcardi
+select Email, PATINDEX('%@aaa.com', Email) as FirstOccurence
+from Employees
+where PATINDEX('%@aaa.com', Email) > 0
+--leian kõik selle domeeni esindajad ja alates mitemndast märgist algab 
+
+--kõik .com emailid asedab .net-ga
+select Email, REPLACE(Email, '.com', '.net')
+from Employees
+
+--soovin asendada peale esimest märki kolm tähte viie tärniga
+
+select FirstName, LastName, Email,
+stuff(Email, 2, 3, '*****') as StuffedEmail
+from Employees
+
+create table  DateTime
+(
+c_time time,
+c_date date,
+c_smalldateteime smalldatetime,
+c_datetime datetime,
+c_datetime2 datetime2
+)
+
+select * from DateTime
+
+--konkreetse masina kellaaeg
+select getdate(), 'GETDATE()'
+
+insert into DateTime 
+values (getdate(), getdate(), getdate(), getdate(), getdate(), getdate())
+
+select * from DateTime
+
+update DateTime
+set c_date = '1446-04-12'
+where c_date = '2026-03-19'
+
+select CURRENT_TIMESTAMP, 'CURRENT_TIMESTAMP' --aja päring
+select SYSDATETIME(), 'SYSDATETIME' --veel täpsem aja päring
+select SYSDATETIMEOFFSET(), 'SYSDATETIMEOFFSET' --täpne aeg koos ajalise nihkega
+select GETUTCDATE(), 'GETUTCDATE' ---UTC aeg
+
+--saab kontrollida, kas on õige andmetüüp 
+select isdate('asd') --tagastab 0 kuna string ei ole date
+select isdate(GETDATE()) -- kuidas saada vastuseks 1 isdate puhul
+select isdate('2026-03-19 12:43:22.260001') -- tagastab 0 kuna max kolm komakohta võib olla
+select isdate('2026-03-19 12:43:22.260') -- tagastab 1
+select DAY(GETDATE()) -- annab tänase päeva nr
+select DAY('01/24/2026') -- annab stringis oleva kp ja järjestus peab olema õige
+select MONTH(GETDATE())--annab jooksva kuu nr
+select MONTH('01/24/2026') --annab stringis oleva kuu ja järjestus peab olema õige
+select YEAR(GETDATE())-- annab jooksva aasta nr
+select YEAR('01/24/2026') -- annab stringis oleva aasta ja järjestus peab olema õige
+select datename(day, '2026-03-19 12:43:22.260') --annab stringis oleva päeva nr
+select datename(weekday, '2026-03-19 12:43:22.260') --annab stringis oleva nädala nr
+select datename(month, '2026-03-19 12:43:22.260') --annab stringis oleva kuu nr
