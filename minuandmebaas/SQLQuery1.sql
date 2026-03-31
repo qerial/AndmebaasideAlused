@@ -938,6 +938,9 @@ select Name, DateOfBirth, Datename(weekday, DateOfBirth) as [Day],
 	Year(DateOfBirth) as [Year]
 from EmployeesWithDates
 
+select Datepart(WEEKDAY, '2008-07-28 ')
+
+
 --kuvab 3 kuna USA nädal algab pühapäeval
 select Datepart(WEEKDAY, '2026-03-24 13:13:00:670')
 --tehke sama, aga kasutage kuud
@@ -982,3 +985,88 @@ as begin
 end
 
  select Id, Name, DateOfBirth, dbo.fnComputeAge(DateOfBirth) as Age From EmployeesWithDates
+
+ --rida 902
+ --tund 10
+
+ --kui kasutame seda funktsiooni, siis saame teada tänase päeva vahtet stringis välja tooduga
+
+ select dbo.fnComputeAge('07/28/2008') as Age
+
+ -- nr peale DOB muutujat näitab, et mismoodi kuvada DOB-d
+ select Id, Name, DateOfBirth,
+ convert(nvarchar, DateOfBirth, 109) as ConvertedDOB
+ from EmployeesWithDates
+
+ select Id, Name, Name + ' - ' + cast(Id as nvarchar) as [Name-Id] from EmployeesWithDates
+
+ select CAST(GETDATE() as date) 
+
+ --tänane kp, aga kasutate converti 
+
+ Select CONVERT(nvarchar, GETDATE(), 109) as ConvertedTime
+
+ select convert(date, getdate())
+ 
+ select * from EmployeesWithDates
+
+ --matemaatilised funktsioonid 
+ select ABS(-5) --abs on absoluutväärtusega number ja tulemuseks saame ilma miinus märgita 5
+ select CEILING(4.2) -- ceiling on funktsioon, mis ümardab ülespoole ja tulemuseks saame 5
+  select CEILING(-4.2) --ceiling ümardab ka miinus numbrid ülespoole, mis tähendab, et saame -4
+  select floor(15.2) --floor on fuktsioon, mis ümardab alla ja tulemuseks saame 15
+  select floor(-15.2)-- floor ümardab ka miinus numbrid alla, mis tähendab et saame -16
+  select power(2, 4)--kaks astmes 4
+  select SQUARE(9)--antud juhul 9 ruudus
+  select sqrt(16) -- antud juhul 16 ruutjuur
+
+  select rand() --rand on funktsioon, mis genereerib 
+  --juhusliku numbri vahemikus 0 kuni 1
+  --kuidas saada täisnumber iga kord
+select rand() * 100
+select floor(rand() * 100) --korrutab sajaga iga suvalise numbri
+
+--iga krd näitab 10 suvalist numbrit
+declare @counter int 
+set @counter = 1
+while (@counter <= 10)
+begin
+	 print floor(rand() * 100)
+	 set @counter = @counter + 1
+end
+
+select ROUND(850.556, 2)
+--round on funktsioon,
+--mis ümardab kaks komakohta ja tulemuseks saame 850.56
+select ROUND(850.556, 2, 1)
+--round on funktsioon, mis ümardab kaks komakohta ja
+--kui kolmas parameeter on 1, siis ümardab alla 
+select ROUND(850.556, 1)
+--ROUND on funktsoon, mis ümardab ühe komakohta ja 
+--tulemuseks saame 850.6
+select ROUND(850.556, 1, 1)
+--ümardab alla ühe komakoha pealt 
+--ja tulemuseks saame 850.5 
+select ROUND(850.556, -2) --ümardab täisnr ülessepoole ja tulemuseks saame 900
+select ROUND(850.556, -1) --ümardab täisnr alla ja tulemus on 850
+
+--
+create function dbo.CalculateAge(@DOB date)
+returns int
+as begin
+Declare @Age int
+
+	SET @Age = datediff(YEAR, @DOB, GETDATE()) -
+	case 
+		when (MONTH(@DOB) > MONTH(GETDATE())) or
+			 (MONTH(@DOB) = MONTH(GETDATE()) and DAY(@DOB) > DAY(GETDATE()))
+			 then 1 else 0 end
+		return @Age
+end
+
+SELECT dbo.CalculateAge'2008-07-28' AS Age
+
+--arvutab välja, kui vana on isik ja võtab arvesse kuud ning päevad 
+--antud juhul näitab kõike, kes on üle 36 a vanad
+select Id, Name, dbo.CalculateAge(DateOfBirth) as Age from EmployeesWithDates
+where dbo.CalculateAge(DateOfBirth) > 36
