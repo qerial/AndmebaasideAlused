@@ -130,8 +130,7 @@ as begin
 
 	select @Price = ListPrice
 	from SalesLT.Product 
-	where ProductID = @ProductID;
-
+,
 	IF @Price > 1000
 	print 'Kallis';
 	else if @Price between 100 and 1000
@@ -141,3 +140,209 @@ as begin
 	end;
 
 	exec CheckProductPriceLevel 101
+
+--	1. GetAllCustomers_ITVF
+--Koosta inline funktsioon, mis tagastab kõik kliendid.
+--Tabel:
+--SalesLT.Customer
+create function GetAllCustomers_ITVF()
+returns table
+return (select * from SalesLT.Customer)
+
+
+select * from GetAllCustomers_ITVF()
+
+--2. GetCustomerByID_ITVF
+--Koosta funktsioon, mis:
+--võtab @CustomerID
+--tagastab:
+--FirstName
+--LastName
+create function GetCustomerByID_ITVF (@CustomerId int)
+returns @Table Table (CustomerId int,FirstName nvarchar(20), LastName nvarchar(20))
+as begin 
+insert into @Table
+select CustomerId ,FirstName , LastName
+from SalesLT.Customer
+where CustomerID = @CustomerId
+return
+end
+
+select * from GetCustomerByID_ITVF(42)
+
+--3. GetOrdersByCustomer_ITVF
+--Koosta funktsioon, mis:
+--võtab @CustomerID
+--tagastab kõik selle kliendi tellimused
+--Tabel:
+--SalesLT.SalesOrderHeader
+
+CREATE FUNCTION GetOrdersByCustomer_ITVF (@CustomerId INT)
+RETURNS @Table TABLE 
+(
+    CustomerId INT,
+    SalesOrderNumber NVARCHAR(MAX),
+    ShipMethod NVARCHAR(MAX),
+    SubTotal MONEY
+)
+as 
+begin 
+    insert into @Table
+    select 
+        CustomerId,
+        SalesOrderNumber,
+        ShipMethod,
+        SubTotal
+    from SalesLT.SalesOrderHeader
+    where CustomerID = @CustomerId
+    return
+end
+
+select * from GetOrdersByCustomer_ITVF(29938)
+
+--4. GetProductsByPrice_ITVF
+--Koosta funktsioon, mis:
+--võtab @MinPrice, @MaxPrice
+--tagastab tooted hinnavahemikus
+--Tabel:
+--SalesLT.Product
+
+create function GetProductsByPrice_ITVF(@MinPrice money, @MaxPrice money)
+returns table as 
+return
+(select * from SalesLT.product
+where ListPrice between @MinPrice and @MaxPrice);
+
+select * from GetProductsByPrice_ITVF(200, 500)
+
+
+
+--5. GetTopExpensiveProducts_ITVF
+--Koosta funktsioon, mis:
+--tagastab TOP 10 kõige kallimat toodet
+--OSA 2: Multi-Statement Functions (keerulisemad)
+
+create function GetTopExpensiveProducts_ITVF()
+returns table as 
+return
+(select top 10 * from SalesLT.product
+order by listprice desc);
+
+select * from GetTopExpensiveProducts_ITVF()
+
+
+--6. GetCustomerFullInfo_MSTVF
+--Koosta funktsioon, mis:
+--võtab @CustomerID
+--tagastab tabeli, kus on:
+--nimi (First + Last kokku)
+--email
+--telefon
+--Tabel:
+--SalesLT.Customer
+--kasuta @Result TABLE
+
+create function GetCustomerFullInfo_MSTVF(@CustomerID int)
+returns @Table Table (FullName nvarchar(50), Email nvarchar(50), Phone nvarchar(20))
+as 
+begin 
+    insert into @Table
+    select FirstName + ' ' + LastName as fullname, EmailAddress, Phone
+    from SalesLT.Customer
+    where CustomerID = @CustomerID
+
+    return
+end
+
+select * from GetCustomerFullInfo_MSTVF(5)
+
+--7. GetCustomerOrderSummary_MSTVF
+--Koosta funktsioon, mis:
+--võtab @CustomerID
+--tagastab:
+--tellimuste arv
+--kogusumma
+--Tabel:
+--SalesLT.SalesOrderHeader
+
+create function GetCustomerOrderSummary_MSTVF(@CustomerId int)
+returns @Table table (
+    OrderCount int,
+    TotalAmount money
+)
+as
+begin
+    insert into @Table
+    select 
+        count(*) as OrderCount,
+        sum(SubTotal) as TotalAmount
+    from SalesLT.SalesOrderHeader
+    where CustomerId = @CustomerId
+
+    return
+end
+
+select * from GetCustomerOrderSummary_MSTVF(30033)
+
+--8. GetProductPriceCategory_MSTVF
+--Koosta funktsioon, mis:
+--tagastab kõik tooted + hinnaklass:
+--"Odav", "Keskmine", "Kallis"
+--Tabel:
+--SalesLT.Product
+
+create function GetProductPriceCategory_MSTVF()
+returns @result Table
+(ProductId int, Name nvarchar(200), ListPrice money,
+PriceCategory nvarchar(50))
+as begin 
+	insert into @result
+	select ProductID, Name, ListPrice, case
+	when ListPrice < 100 then 'odav'
+	when ListPrice between 100 and 1000 then 'keskmine'
+	else 'kallis'
+end
+	from.SalesLT.product
+	return;
+end;
+
+select * from GetProductPriceCategory_MSTVF()
+
+
+
+--9. GetCustomersWithOrders_MSTVF
+--Koosta funktsioon, mis:
+--tagastab ainult need kliendid, kellel on vähemalt 1 tellimus
+--Tabelid:
+--SalesLT.Customer
+--SalesLT.SalesOrderHeader
+
+--10. GetTopCustomersBySpending_MSTVF
+--Koosta funktsioon, mis:
+--tagastab TOP 5 klienti
+--koos:
+--nimega
+--kogukuluga
+
+create function GetTopCustomersBySpending_MSTVF()
+returns @result TABLE
+(
+	CustomerID INT,
+	FullName NVARCHAR(200)
+	TotalSpent MONEY
+)
+as begin
+	insert into @Result
+	select top 5
+	c.CustomerId,
+	c.FirstName + ' ' + c.LastName,
+	SUM(soh.TotalDue),
+	from SalesLT.SalesOrderHeader soh,
+	ON c.CustomerID = soh.CustomerID,
+	group by c.CustomerID c.FirstName, c.LastName,
+	order by TotalSpent DESC ;
+	return;
+	end;
+
+
+select * from GetTopCustomersBySpending_MSTVF()
