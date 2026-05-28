@@ -2489,3 +2489,202 @@ begin
 	print @Counter
 	set @Counter = @Counter + 1
 end
+--võrdleme subquerit ja JOIN-i
+select Id, Name, Description
+from Product
+where Id in
+(
+	Select Product.Id from ProductSales
+)
+-- 3milj rida, 16 sek
+
+--teeme cache puhtaks, et uut päringut ei oleks kuskile vahemällu salvestatud
+checkpoint;
+go
+dbcc DROPCLEANBUFFERS; --puhastab päringu cache-i
+go
+dbcc FREEPROCCACHE; --puhastab täitva planeeritud cache-i
+go
+
+--- teeme sama tabeli peale inner join päringu
+select Product.Id, Name, Description
+from Product
+inner join ProductSales
+on Product.Id = ProductSales.ProductId
+-- 285 tuhat rida 1 sekundiga
+
+-- teeme cache puhtaks
+checkpoint;
+go
+dbcc DROPCLEANBUFFERS; --puhastab päringu cache-i
+go
+dbcc FREEPROCCACHE; --puhastab täitva planeeritud cache-i
+go
+
+select Id, Name, Description
+from Product
+where not exists
+(
+	select * from ProductSales where ProductId = Product.Id
+)
+--- 2,905 mil rida, 15 sekundiga
+-- vahemälu puhtaks teha
+
+--kasutage left joini ProductId is null
+select Product.Id, Name, Description
+from Product
+left join ProductSales
+on Product.Id = ProductSales.ProductId
+where ProductSales.ProductId is null
+--- 2,905 mil rida, 15 sekundiga
+
+
+---- CURSOR-d
+
+--- Relatsiooniliste DB-de haldussüsteemid saavad väga hästi hakkama
+--- SETS-ga. SETS lubab mitut päringut kombineerida üheks tulemuseks-
+--- Sinna alla käivad UNION, INTERSECT ja EXCEPT.
+
+update ProductSales set UnitPrice = 50
+where ProductSales.ProductId = 101
+
+--- kui on vaa rea kaupa andmeid töödelda, siis kõige parem oleks kasutada
+--- Cursoreid. Samas on need jõydlusele halvad ja võimalusel vältida.
+--- Soovitav oleks kasutada JOIN-i
+
+-- Cursoid jagunevad omakorda neljaks:
+-- 1. Forward-Only ehk edasi-ainult
+-- 2. Static ehk staatilised
+-- 3. Keyset ehk võtmele seadistatud
+-- 4. Dynamic ehk dünaamiline
+
+-- Cursori näide:
+if the ProductName = 'Product - 55', set UnitPrice to 55
+
+
+--- Nüüd algab õige cursor
+--------------------------
+declare @ProductId int
+-- deklareerime cursori
+declare ProductIdCursor cursor for
+select ProductId from ProductSales
+-- open avaldusega täidab select avaldust
+-- ja sisestab tulemuse
+open ProductIdCursor
+
+fetch next from ProductIdCursor into @ProductId
+--- kui tulemuses on veel ridu, sis @@FETCH_STATUS on 0
+while(@@FETCH_STATUS = 0)
+begin
+	declare @ProductName nvarchar(50)
+	select @ProductName = Name from Product where Id = @ProductId
+
+	if(@ProductName ='Product - 55')
+	begin
+		update ProductSales set UnitPrice = 55 Where ProductId = @ProductId
+	end
+
+	else if(@ProductName = 'Product - 65')
+	begin
+		update ProductSales set UnitPrice = 65 where ProductId = @ProductId
+	end
+
+		else if(@ProductName = 'Product - 1000')
+	begin
+		update ProductSales set UnitPrice = 1000 where ProductId = @ProductId
+	end
+
+	fetch next from ProductIdCursor into @ProductId
+end
+
+select * from Product
+
+-- tund 18
+-- 28.05.26
+-- vabastab rea seadistuse e suleb cursori
+close ProductIdCursor
+-- vabastab ressursid, mis on seotud cursoriga
+deallocate ProductIdCursor
+-- cursori käskluse lõpp
+
+select * from Product
+
+--vaatame, kas read on uuendatud
+select Name, UnitPrice
+from Product join
+ProductSales on Product.Id = ProductSales.ProductId
+where(Name = 'Product - 55' or Name = 'Product - 65' or Name = 'Product - 1000')
+
+-- asendame curosirid JOIN-ga
+update ProductSales
+set UnitPrice = 
+	case
+		when Name = 'Product - 55' then 155
+		when Name = 'Product - 65' then 165
+		--võib kasutada like või =
+		when Name like 'Product - 1000' then 10001
+	end
+from ProductSales
+join Product
+on Product.Id = ProductSales.ProductId
+where Name = 'Product - 55' or Name = 'Product - 65' or
+Name like 'Product - 1000'
+
+select Name, UnitPrice
+from Product 
+join ProductSales
+on Product.Id = ProductSales.ProductId
+where Name = 'Product - 55' or Name = 'Product - 65' or
+Name like 'Product - 1000'
+
+--tabelite info
+--nimekiri tabelitest
+select * from sysobjects where xtype = 'S'
+
+-- tabelite nimekiri
+select * from sys.tables
+-- nimekiri tabelitest ja view-st
+select * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+
+--kui soovid erinevaid objektitüüpe vaadata, siis kasuta XTYPE süntaksit
+select distinct XTYPE from sysobjects
+
+-- IT - internal table
+-- P - stored procedure
+-- PK - primary key constraint
+-- S - system table 
+-- SQ - service queue
+-- U - user table
+-- V - view
+
+
+-- annab teada, kas sellise nimega tabel on olemas 
+if not exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'Employee123')
+begin
+	create table Employee123
+	(
+	Id int primary key, 
+	Name nvarchar(30),
+	ManagerId int
+	)
+	print 'Table has been created !'
+end
+else begin
+	print 'Table already exists'
+end
+
+--saab kasutada ka sisseehitatud funktsiooni: OBJECT_ID()
+if OBJECT_ID('Employee') is not null
+begin
+	Drop table Employee
+end
+create table Employee
+(
+	Id int primary key,
+	Name nvarchar(30),
+	ManagerId int
+)
+
+-- tahame sama nimega tabeli ära kustutada
+
+
